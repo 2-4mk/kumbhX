@@ -14116,5 +14116,89 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 .kr-safety-final-qr > *:not(img):not(p){display:none!important;}
 .kr-safety-final-qr > img.kr-single-safety-qr-image{display:block!important;width:100%!important;max-width:360px!important;height:auto!important;aspect-ratio:1/1!important;object-fit:contain!important;}
 </style>
+
+<!-- FINAL SAFETY BAND QR FIX: one QR image + compact public profile URL -->
+<style id="kr-final-qr-single-style">
+.kr-safety-final-qr{background:#fff!important;padding:14px!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:visible!important;min-height:0!important}
+.kr-safety-final-qr canvas,.kr-safety-final-qr img{display:none!important}
+.kr-safety-final-qr img.kr-final-qr-image{display:block!important;width:min( min(78vw,360px),100%)!important;height:auto!important;aspect-ratio:1/1!important;object-fit:contain!important;image-rendering:pixelated!important;background:#fff!important}
+#krSafetyPublicLanding{position:relative;z-index:1000;max-width:560px;margin:24px auto;padding:16px}
+#krSafetyPublicLanding .kr-final-public-card{background:#fff;border:1px solid #e1e8f0;border-radius:22px;overflow:hidden;box-shadow:0 12px 35px #10233f20}
+#krSafetyPublicLanding .kr-final-public-head{background:linear-gradient(135deg,#10233f,#176ed1);color:#fff;padding:24px}
+#krSafetyPublicLanding .kr-final-public-body{padding:22px;color:#10233f}
+#krSafetyPublicLanding .kr-final-public-row{padding:12px 0;border-bottom:1px solid #e7edf4;overflow-wrap:anywhere}
+#krSafetyPublicLanding .kr-final-public-row small{display:block;color:#6d7c91;font-size:11px;margin-bottom:4px}
+#krSafetyPublicLanding .kr-final-public-action{display:flex;align-items:center;justify-content:center;width:100%;min-height:50px;margin-top:12px;border-radius:12px;text-decoration:none;font-weight:800}
+@media(max-width:600px){#krSafetyPublicLanding{margin:10px auto;padding:10px}}
+</style>
+<script id="kr-final-authoritative-safety-qr">
+(function(){
+ 'use strict';
+ const DEPLOYED_BASE='https://2-4mk.github.io/kumbhX/';
+ const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const readBands=()=>{try{const a=JSON.parse(localStorage.getItem('kumbhSafetyBands')||'[]');return Array.isArray(a)?a:[]}catch(_){return []}};
+ const getUser=()=>{try{if(typeof currentUser!=='undefined'&&currentUser)return currentUser}catch(_){}try{return JSON.parse(localStorage.getItem('kumbhCurrentUser')||'null')}catch(_){return null}};
+ function profileURL(b){
+   const q=new URLSearchParams();
+   q.set('s','1');q.set('i',b.id||'');q.set('n',b.name||'');q.set('c',b.category||'Safety Band');
+   if(b.phone)q.set('p',b.phone);
+   if(b.relation)q.set('r',b.relation);
+   const lat=b.location&&Number(b.location.lat),lon=b.location&&Number(b.location.lon);
+   if(Number.isFinite(lat)&&Number.isFinite(lon)){q.set('a',lat.toFixed(5)+','+lon.toFixed(5))}
+   return DEPLOYED_BASE+'?'+q.toString();
+ }
+ function renderOneQR(box,b){
+   if(!box||!b)return;
+   box.replaceChildren();
+   const url=profileURL(b);
+   const img=document.createElement('img');
+   img.className='kr-final-qr-image';img.alt='Scan to open the Safety Band profile';
+   img.width=500;img.height=500;
+   img.style.cssText='display:block;width:min(78vw,360px);max-width:100%;height:auto;aspect-ratio:1/1;object-fit:contain;background:#fff;image-rendering:pixelated';
+   img.src='https://api.qrserver.com/v1/create-qr-code/?size=500x500&margin=4&ecc=L&format=png&data='+encodeURIComponent(url);
+   img.onerror=function(){box.replaceChildren();const p=document.createElement('p');p.textContent='QR image could not load. Check internet and reopen VIEW QR.';p.style.color='#b91c1c';box.appendChild(p)};
+   box.appendChild(img);
+ }
+ window.krShowSafetyBandQR=function(id){
+   const u=getUser(),host=document.getElementById('krSafetyHost')||document.getElementById('safetyRegistration');
+   if(!u||!host){alert('Please log in first.');return}
+   const b=readBands().find(x=>String(x.id)===String(id)&&String(x.ownerId)===String(u.id));
+   if(!b){alert('Safety Band not found. Please reopen Safety Band and try again.');return}
+   host.querySelectorAll('.kr-safety-final-qr-panel').forEach(x=>x.remove());
+   const panel=document.createElement('div');panel.className='kr-safety-final-panel kr-safety-final-qr-panel';
+   panel.style.cssText='position:relative;z-index:20;background:#fff;border:1px solid #dfe7f1;border-radius:20px;padding:20px;margin:16px 0;max-width:520px;box-shadow:0 12px 30px #10233f18';
+   panel.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><div><h3 style="margin:0 0 6px;color:#102a54">🛡️ Safety Band QR</h3><b>'+esc(b.name)+' · '+esc(b.category)+'</b><p style="margin:6px 0;color:#65758a">Safety ID: '+esc(b.id)+'</p></div><button type="button" class="gray" aria-label="Close QR" style="margin:0;padding:8px 12px" data-close>✕</button></div><div class="kr-safety-final-qr" style="margin:12px auto"></div><p style="font-size:12px;color:#65758a;text-align:center">Scan with your phone camera. It opens the public profile on Kumbh Rakshak.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="blue" data-share style="flex:1">SHARE PROFILE LINK</button><button type="button" class="gray" data-copy style="flex:1">COPY LINK</button></div>';
+   host.appendChild(panel);
+   renderOneQR(panel.querySelector('.kr-safety-final-qr'),b);
+   panel.querySelector('[data-close]').onclick=()=>panel.remove();
+   panel.querySelector('[data-share]').onclick=()=>{const url=profileURL(b);if(navigator.share)navigator.share({title:'Kumbh Rakshak Safety Band',url}).catch(()=>{});else copyURL(url)};
+   panel.querySelector('[data-copy]').onclick=()=>copyURL(profileURL(b));
+   setTimeout(()=>panel.scrollIntoView({behavior:'smooth',block:'nearest'}),80);
+ };
+ function copyURL(url){if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(url).then(()=>alert('Safety Band profile link copied.')).catch(()=>prompt('Copy this profile link:',url));else prompt('Copy this profile link:',url)}
+ window.krShareSafetyBand=function(id){
+   const u=getUser(),b=readBands().find(x=>String(x.id)===String(id)&&String(x.ownerId)===String(u&&u.id));
+   if(!b){alert('Safety Band not found.');return}
+   const url=profileURL(b);
+   if(navigator.share)navigator.share({title:'Kumbh Rakshak Safety Band',url}).catch(()=>{});
+   else copyURL(url);
+ };
+ function showPublicProfile(){
+   const q=new URLSearchParams(location.search);
+   if(q.get('s')!=='1' && q.get('safety')!=='1')return;
+   const name=q.get('n')||q.get('name')||'Safety Band Owner';
+   const category=q.get('c')||q.get('category')||'Safety Band';
+   const id=q.get('i')||q.get('id')||'Not provided';
+   const phone=q.get('p')||q.get('phone')||'';
+   const relation=q.get('r')||q.get('relation')||'';
+   let coords=q.get('a')||'';
+   if(!coords&&q.get('lat')&&q.get('lon'))coords=q.get('lat')+','+q.get('lon');
+   const parts=coords.split(',');const valid=parts.length===2&&Number.isFinite(Number(parts[0]))&&Number.isFinite(Number(parts[1]));
+   document.body.innerHTML='<main id="krSafetyPublicLanding"><div class="kr-final-public-card"><header class="kr-final-public-head"><div style="font-size:34px">🛡️</div><h1 style="margin:8px 0;font-size:27px">Kumbh Rakshak</h1><p style="margin:0;opacity:.85">Safety Band public profile</p></header><section class="kr-final-public-body"><h2 style="margin:0 0 14px">Safety Band Details</h2><div class="kr-final-public-row"><small>NAME</small><b>'+esc(name)+'</b></div><div class="kr-final-public-row"><small>PERSON TYPE</small><b>'+esc(category)+'</b></div><div class="kr-final-public-row"><small>SAFETY ID</small><b>'+esc(id)+'</b></div>'+(relation?'<div class="kr-final-public-row"><small>RELATION</small><b>'+esc(relation)+'</b></div>':'')+(phone?'<a class="kr-final-public-action" style="background:#e9f8ef;color:#087a45" href="tel:'+encodeURIComponent(phone)+'">📞 CALL EMERGENCY CONTACT</a>':'<p style="color:#68778c;font-size:13px">No contact phone was included in this QR.</p>')+(valid?'<a class="kr-final-public-action" style="background:#087fce;color:white" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(Number(parts[0])+','+Number(parts[1]))+'">📍 OPEN LOCATION IN MAPS</a>':'')+'<p style="font-size:12px;line-height:1.5;color:#68778c;margin-top:18px">If this person needs help, contact the number above or use the location link when available.</p></section></div></main>';
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',showPublicProfile,{once:true});else showPublicProfile();
+})();
+</script>
+
 </body>
 </html>
