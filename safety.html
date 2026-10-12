@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#10233f">
+<title>Kumbh Rakshak — Safety Band</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:#132b4d;background:#f1f5fb}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:18px;background:linear-gradient(135deg,#edf4ff,#fff7ec)}
+.card{width:min(560px,100%);background:#fff;border:1px solid #dce5f0;border-radius:24px;overflow:hidden;box-shadow:0 18px 50px #142d501f}
+.head{padding:24px;background:linear-gradient(135deg,#fff5e7,#edf5ff);border-bottom:1px solid #e4eaf2}
+h1{font-size:25px;line-height:1.2;margin:0 0 8px}.id{font-size:13px;color:#64748b;overflow-wrap:anywhere}
+.body{padding:20px}.person{padding:16px;border-radius:16px;background:#f7fbff;border:1px solid #e1e9f2}
+.name{font-size:24px;font-weight:800;overflow-wrap:anywhere}.category{margin-top:5px;color:#64748b}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.info{padding:12px;border-radius:13px;background:#f8fbff;border:1px solid #e1e8f1;min-width:0}
+small{display:block;color:#718096;font-size:10px;font-weight:800;margin-bottom:5px;letter-spacing:.05em}
+.info b{overflow-wrap:anywhere}
+a.button,button{display:flex;align-items:center;justify-content:center;width:100%;min-height:52px;padding:13px;border:0;border-radius:14px;font-size:15px;font-weight:800;text-decoration:none;cursor:pointer}
+.map{background:#087fce;color:#fff}.call{margin-top:10px;background:#e7f7ed;color:#087a45}
+.note{font-size:12px;line-height:1.55;color:#68778c;margin-top:14px}
+.error{padding:14px;border-radius:12px;background:#fff0ed;color:#a33122}
+@media(max-width:520px){body{padding:10px}.head,.body{padding:17px}h1{font-size:22px}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="card" aria-labelledby="title">
+  <header class="head">
+    <h1 id="title">🛡️ Kumbh Rakshak Safety Band</h1>
+    <div class="id">Safety ID: <b id="bandId">Not provided</b></div>
+  </header>
+  <section class="body">
+    <div class="person">
+      <div class="name" id="personName">Safety Band profile</div>
+      <div class="category" id="personCategory">Category unavailable</div>
+    </div>
+    <div class="grid">
+      <div class="info"><small>SAFETY ID</small><b id="idValue">Not provided</b></div>
+      <div class="info"><small>CONTACT</small><b id="contactValue">Not provided</b></div>
+    </div>
+    <a id="callButton" class="button call" href="#" hidden>📞 Call contact</a>
+    <a id="mapButton" class="button map" href="#" target="_blank" rel="noopener" hidden>📍 Start map to owner</a>
+    <div id="message" class="note">This page displays the details encoded in the Safety Band QR. If a location was not available at registration, ask the owner or volunteer for assistance.</div>
+  </section>
+</main>
+<script>
+(function(){
+ const p=new URLSearchParams(location.search);
+ const get=k=>(p.get(k)||'').trim();
+ const id=get('id'),name=get('name'),category=get('category'),phone=get('phone'),relation=get('relation');
+ const lat=get('lat'),lon=get('lon');
+ const safeText=(id,txt)=>{document.getElementById(id).textContent=txt||'Not provided'};
+ safeText('bandId',id);safeText('idValue',id);safeText('personName',name||'Safety Band profile');
+ safeText('personCategory',[category,relation].filter(Boolean).join(' · ')||'Category unavailable');
+ safeText('contactValue',phone);
+ if(phone){const call=document.getElementById('callButton');call.href='tel:'+phone.replace(/[^\d+*#,;]/g,'');call.hidden=false}
+ if(lat!==''&&lon!==''&&Number.isFinite(Number(lat))&&Number.isFinite(Number(lon))&&Math.abs(Number(lat))<=90&&Math.abs(Number(lon))<=180){
+  const map=document.getElementById('mapButton');
+  map.href='https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(Number(lat)+','+Number(lon));
+  map.hidden=false;
+ }else{
+  document.getElementById('message').textContent='Owner location is not included in this QR. Call the listed contact or ask a Kumbh Rakshak volunteer for help.';
+ }
+ if(!id&&!name&&!phone)document.getElementById('message').innerHTML='<div class="error">This QR link has no Safety Band details. Please scan the QR again or contact a volunteer.</div>';
+})();
+</script>
+</body>
+</html>
