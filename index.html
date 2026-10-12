@@ -12470,102 +12470,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </style>
 
 <style id="kr-safety-band-working-fix">\n#publicPage #krNewSafety #krSafetyHost{\n  display:block!important;\n  width:100%!important;\n  min-width:0!important;\n  max-width:100%!important;\n  box-sizing:border-box!important;\n}\n#publicPage #krNewSafety #krSafetyHost .result{\n  width:100%!important;\n  box-sizing:border-box!important;\n}\n#publicPage #krNewSafety #krSafetyHost #mySafetyQR{\n  display:flex!important;\n  justify-content:center!important;\n  align-items:center!important;\n  margin:14px auto!important;\n  width:260px!important;\n  max-width:100%!important;\n  min-height:260px!important;\n  background:#fff!important;\n  border-radius:14px!important;\n  padding:10px!important;\n  box-sizing:border-box!important;\n}\n</style>
-
-
-<!-- FINAL INTERACTION + SAFETY BAND MODAL FIX (GitHub Pages: /kumbhX/) -->
-<style id="kr-final-interaction-fixes-css">
-#krFixModal{position:fixed;inset:0;z-index:2147483000;background:rgba(7,18,38,.68);display:flex;align-items:center;justify-content:center;padding:14px;box-sizing:border-box}
-#krFixModal .kr-fix-dialog{position:relative;background:#f7faff;color:#172b4d;border-radius:20px;width:min(620px,100%);max-height:90dvh;overflow:auto;padding:18px;box-shadow:0 24px 80px #0005;box-sizing:border-box}
-#krFixModal .kr-fix-close{position:sticky;float:right;top:0;z-index:3;border:0;border-radius:50%;width:40px;height:40px;background:#e5edf8;color:#142c52;font-size:25px;cursor:pointer}
-#krFixModal h2{margin:3px 48px 14px 0;color:#142c52;font-size:22px}
-#krFixModal #krSafetyHost{display:block!important;width:100%!important;max-width:100%!important;margin:0!important}
-#krFixModal .kr-safety-final-panel{box-shadow:none!important}
-#krFixModal #reader{width:100%!important;max-width:100%!important}
-#krFixModal video{max-width:100%!important;border-radius:12px}
-@media(max-width:600px){#krFixModal{padding:8px}#krFixModal .kr-fix-dialog{padding:12px;border-radius:16px;max-height:94dvh}}
-</style>
-<script id="kr-final-interaction-fixes-js">
-(function(){
- 'use strict';
- const $=id=>document.getElementById(id);
- const oldShowSafety=window.showSafetyRegistration;
- const oldStartScanner=window.startScanner;
- let modal=null,host=null,hostHome=null,hostNext=null,reader=null,readerHome=null,readerNext=null;
- function openModal(title,body){
-   closeModal(false);
-   modal=document.createElement('div');modal.id='krFixModal';modal.innerHTML='<div class="kr-fix-dialog" role="dialog" aria-modal="true"><button class="kr-fix-close" type="button" aria-label="Close">×</button><h2>'+title+'</h2><div id="krFixModalBody">'+body+'</div></div>';
-   document.body.appendChild(modal);
-   modal.querySelector('.kr-fix-close').onclick=()=>closeModal(true);
-   modal.addEventListener('click',e=>{if(e.target===modal)closeModal(true)});
-   document.addEventListener('keydown',escClose);
-   return $('krFixModalBody');
- }
- function escClose(e){if(e.key==='Escape')closeModal(true)}
- function closeModal(restore){
-   if(!modal)return;
-   try{if(window.scanner&&typeof window.scanner.clear==='function')window.scanner.clear().catch(()=>{});}catch(_){ }
-   if(host&&hostHome){if(hostNext&&hostNext.parentNode===hostHome)hostHome.insertBefore(host,hostNext);else hostHome.appendChild(host);}
-   if(reader&&readerHome){if(readerNext&&readerNext.parentNode===readerHome)readerHome.insertBefore(reader,readerNext);else readerHome.appendChild(reader);}
-   modal.remove();modal=null;host=null;hostHome=null;hostNext=null;reader=null;readerHome=null;readerNext=null;
-   document.removeEventListener('keydown',escClose);
- }
- window.showSafetyRegistration=function(){
-   const body=openModal('🛡️ Safety Band','<div id="krFixSafetyMount"></div>');
-   host=$('krSafetyHost')||$('safetyRegistration');
-   if(!host){body.innerHTML='<p>Safety Band panel is not available. Please refresh the page.</p>';return}
-   hostHome=host.parentNode;hostNext=host.nextSibling;
-   $('krFixSafetyMount').appendChild(host);
-   host.style.display='block';host.style.visibility='visible';host.style.width='100%';
-   // Use the established registration/list logic, but render it only once inside this modal.
-   if(typeof oldShowSafety==='function')oldShowSafety();
-   else body.innerHTML='<p>Safety Band module is unavailable. Refresh and try again.</p>';
-   // Remove legacy QR remnants so a registered band cannot appear to have two different QR codes.
-   document.querySelectorAll('#mySafetyQR,#v14QRStatus').forEach(el=>{if(!modal.contains(el)){el.innerHTML='';el.style.display='none'}});
- };
- window.startScanner=function(){
-   const body=openModal('▦ Scan QR Code','<p>Allow camera access to scan a service or Safety Band QR.</p><div id="krFixReaderMount"></div><div id="krFixScanResult" aria-live="polite"></div><button type="button" id="krFixUploadBtn" class="blue" style="margin-top:10px">Scan QR from an image</button><input id="krFixQRFile" type="file" accept="image/*" capture="environment" hidden>');
-   reader=$('reader');
-   if(reader){readerHome=reader.parentNode;readerNext=reader.nextSibling;$('krFixReaderMount').appendChild(reader);reader.style.display='block';}
-   const upload=$('krFixQRFile');$('krFixUploadBtn').onclick=()=>upload.click();
-   upload.onchange=async()=>{const f=upload.files&&upload.files[0];if(!f)return;
-     try{if(typeof Html5Qrcode==='function'){const scannerObj=new Html5Qrcode('krFixReaderMount');const result=await scannerObj.scanFile(f,true);$('krFixScanResult').innerHTML='<div class="result success">QR scanned successfully.</div><p style="overflow-wrap:anywhere">'+String(result).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))+'</p><button id="krFixOpenScanned" class="blue" type="button">Open scanned link</button>';$('krFixOpenScanned').onclick=()=>{try{const u=new URL(result,location.href);if(u.protocol==='https:'||u.protocol==='http:')location.href=u.href;else if(typeof handleQR==='function')handleQR(result);else alert(result)}catch(_){if(typeof handleQR==='function')handleQR(result);else alert(result)}};await scannerObj.clear();}
-     else if('BarcodeDetector' in window){const bmp=await createImageBitmap(f);const det=new BarcodeDetector({formats:['qr_code']});const found=await det.detect(bmp);if(!found.length)throw Error('No QR code found in that image.');$('krFixScanResult').textContent=found[0].rawValue;}
-     else throw Error('Image scanning is not supported by this browser. Use the camera scanner instead.');
-     }catch(err){$('krFixScanResult').textContent=err.message||'Could not scan this image.'}
-   };
-   if(typeof oldStartScanner==='function'){
-     try{oldStartScanner()}catch(e){$('krFixScanResult').textContent='Camera scanner could not start. Check camera permission and HTTPS, then try image scanning.'}
-   }else $('krFixScanResult').textContent='Scanner library is unavailable. Refresh the page and try again.';
- };
- function goTo(target){const el=$(target);if(!el){alert('This section is not available on this page yet.');return false}el.scrollIntoView({behavior:'smooth',block:'center'});el.style.transition='outline-color .2s';el.style.outline='3px solid #2c7be5';setTimeout(()=>el.style.outline='',1800);return true}
- window.krOpenLocalGuide=function(){
-   if(typeof window.showGuideV11==='function'){
-     if(goTo('guideResultV11')){window.showGuideV11();$('guideResultV11')?.scrollIntoView({behavior:'smooth',block:'center'});return}
-     if(goTo('kr-ref-guide')){window.showGuideV11();return}
-   }
-   const card=[...document.querySelectorAll('#publicPage .card,#publicPage .kr-ref-new-card')].find(c=>/Hire a Local Guide/i.test(c.innerText||''));if(card){card.scrollIntoView({behavior:'smooth',block:'center'});const b=card.querySelector('button');if(b)b.click();return}alert('Local Guide section could not be found. Refresh the website and try again.');
- };
- window.krOpenVolunteer=function(){
-   const form=$('volunteerApplicationForm');
-   if(form){form.scrollIntoView({behavior:'smooth',block:'center'});if(typeof window.showVolunteerApplication==='function')window.showVolunteerApplication();return}
-   const card=[...document.querySelectorAll('#publicPage .card,#publicPage .kr-ref-new-card')].find(c=>/Interested in Being a Volunteer|Volunteer/i.test(c.innerText||''));if(card){card.scrollIntoView({behavior:'smooth',block:'center'});const b=card.querySelector('button');if(b)b.click();return}
-   if(typeof window.showVolunteerApplication==='function'){window.showVolunteerApplication();return}alert('Volunteer section could not be found. Refresh the website and try again.');
- };
- // Repair quick-service buttons that previously used optional calls which silently did nothing.
- function repairQuickButtons(){
-   document.querySelectorAll('#krReferenceQuick .kr-qitem').forEach(btn=>{
-     const label=(btn.innerText||'').trim().toLowerCase();
-     if(label.includes('qr scanner'))btn.onclick=()=>window.startScanner();
-     else if(label.includes('safety band'))btn.onclick=()=>window.showSafetyRegistration();
-     else if(label.includes('local guide'))btn.onclick=()=>window.krOpenLocalGuide();
-     else if(label.includes('volunteer'))btn.onclick=()=>window.krOpenVolunteer();
-   });
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',repairQuickButtons);else repairQuickButtons();
- new MutationObserver(()=>repairQuickButtons()).observe(document.body,{subtree:true,childList:true});
-})();
-</script>
-
 </body>
 </html>
 
@@ -14073,7 +13977,7 @@ html.kr-force-mobile #publicPage .kr-nearby-bus-row > .kr-ref-bus{
 <script id="kr-consolidated-fixes">
 (function(){
 'use strict';
-const BASE_URL='https://2-4mk.github.io/kumbhX/'; // Change once if your GitHub Pages URL differs.
+const BASE_URL='https://2-4mk.github.io/kumbhX/'; // GitHub Pages repository URL.
 const BAND_KEY='kumbhSafetyBands';
 const DEMO={phone:'9000000000',password:'1234',name:'Demo User',category:'general'}; // DEMO ONLY; never use as production credentials.
 const $=id=>document.getElementById(id);
@@ -14089,12 +13993,42 @@ function bandURL(b){
  return base+'?'+q.toString();
 }
 function drawQR(box,b){
- if(!box)return;box.replaceChildren();
+ if(!box||!b)return;
+ box.replaceChildren();
  const url=bandURL(b);
- try{if(typeof QRCode==='function'){new QRCode(box,{text:url,width:220,height:220,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel?.M||0});setTimeout(()=>{if(!box.querySelector('canvas,img'))qrFallback(box,url)},500);return}}catch(_){}
+ // Keep a clean white quiet-zone around the QR for easier camera detection.
+ box.style.background='#ffffff';
+ box.style.padding='12px';
+ box.style.boxSizing='border-box';
+ box.style.display='flex';
+ box.style.alignItems='center';
+ box.style.justifyContent='center';
+ box.style.overflow='hidden';
+ try{
+   if(typeof QRCode==='function'){
+     new QRCode(box,{text:url,width:360,height:360,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel?.H ?? 2});
+     setTimeout(()=>{
+       const qr=box.querySelector('canvas,img');
+       if(!qr || (qr.tagName==='CANVAS' && (!qr.width || !qr.height))) qrFallback(box,url);
+       else { qr.style.display='block'; qr.style.width='100%'; qr.style.maxWidth='360px'; qr.style.height='auto'; qr.style.imageRendering='pixelated'; }
+     },700);
+     return;
+   }
+ }catch(e){/* Use hosted QR fallback below. */}
  qrFallback(box,url);
 }
-function qrFallback(box,url){box.replaceChildren();const img=document.createElement('img');img.alt='Safety Band QR code';img.width=220;img.height=220;img.src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=10&data='+encodeURIComponent(url);img.onerror=()=>{box.textContent='QR image could not load. Check your internet connection and try again.'};box.appendChild(img)}
+function qrFallback(box,url){
+ if(!box||!url)return;
+ box.replaceChildren();
+ const img=document.createElement('img');
+ img.alt='Scan to open this Safety Band profile';
+ img.width=500;img.height=500;img.loading='eager';img.decoding='async';
+ img.style.display='block';img.style.width='100%';img.style.maxWidth='360px';
+ img.style.height='auto';img.style.aspectRatio='1 / 1';img.style.objectFit='contain';img.style.background='#ffffff';
+ img.src='https://api.qrserver.com/v1/create-qr-code/?size=500x500&margin=4&ecc=H&format=png&data='+encodeURIComponent(url);
+ img.onerror=()=>{box.replaceChildren();const msg=document.createElement('p');msg.textContent='QR generation failed. Check your internet connection and refresh.';msg.style.color='#b91c1c';box.appendChild(msg)};
+ box.appendChild(img);
+}
 function renderBandList(host,u){
  const list=host.querySelector('#krSafetyFinalList');if(!list)return;
  const own=bands().filter(b=>b.ownerId===u.id);
@@ -14176,102 +14110,6 @@ function fixVisibleCrowd(){
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(fixVisibleCrowd,400),{once:true});else setTimeout(fixVisibleCrowd,400);
 // Never use a body-wide observer here: render functions and layout repair are idempotent.
-})();
-</script>
-
-
-
-<!-- FINAL INTERACTION + SAFETY BAND MODAL FIX (GitHub Pages: /kumbhX/) -->
-<style id="kr-final-interaction-fixes-css">
-#krFixModal{position:fixed;inset:0;z-index:2147483000;background:rgba(7,18,38,.68);display:flex;align-items:center;justify-content:center;padding:14px;box-sizing:border-box}
-#krFixModal .kr-fix-dialog{position:relative;background:#f7faff;color:#172b4d;border-radius:20px;width:min(620px,100%);max-height:90dvh;overflow:auto;padding:18px;box-shadow:0 24px 80px #0005;box-sizing:border-box}
-#krFixModal .kr-fix-close{position:sticky;float:right;top:0;z-index:3;border:0;border-radius:50%;width:40px;height:40px;background:#e5edf8;color:#142c52;font-size:25px;cursor:pointer}
-#krFixModal h2{margin:3px 48px 14px 0;color:#142c52;font-size:22px}
-#krFixModal #krSafetyHost{display:block!important;width:100%!important;max-width:100%!important;margin:0!important}
-#krFixModal .kr-safety-final-panel{box-shadow:none!important}
-#krFixModal #reader{width:100%!important;max-width:100%!important}
-#krFixModal video{max-width:100%!important;border-radius:12px}
-@media(max-width:600px){#krFixModal{padding:8px}#krFixModal .kr-fix-dialog{padding:12px;border-radius:16px;max-height:94dvh}}
-</style>
-<script id="kr-final-interaction-fixes-js">
-(function(){
- 'use strict';
- const $=id=>document.getElementById(id);
- const oldShowSafety=window.showSafetyRegistration;
- const oldStartScanner=window.startScanner;
- let modal=null,host=null,hostHome=null,hostNext=null,reader=null,readerHome=null,readerNext=null;
- function openModal(title,body){
-   closeModal(false);
-   modal=document.createElement('div');modal.id='krFixModal';modal.innerHTML='<div class="kr-fix-dialog" role="dialog" aria-modal="true"><button class="kr-fix-close" type="button" aria-label="Close">×</button><h2>'+title+'</h2><div id="krFixModalBody">'+body+'</div></div>';
-   document.body.appendChild(modal);
-   modal.querySelector('.kr-fix-close').onclick=()=>closeModal(true);
-   modal.addEventListener('click',e=>{if(e.target===modal)closeModal(true)});
-   document.addEventListener('keydown',escClose);
-   return $('krFixModalBody');
- }
- function escClose(e){if(e.key==='Escape')closeModal(true)}
- function closeModal(restore){
-   if(!modal)return;
-   try{if(window.scanner&&typeof window.scanner.clear==='function')window.scanner.clear().catch(()=>{});}catch(_){ }
-   if(host&&hostHome){if(hostNext&&hostNext.parentNode===hostHome)hostHome.insertBefore(host,hostNext);else hostHome.appendChild(host);}
-   if(reader&&readerHome){if(readerNext&&readerNext.parentNode===readerHome)readerHome.insertBefore(reader,readerNext);else readerHome.appendChild(reader);}
-   modal.remove();modal=null;host=null;hostHome=null;hostNext=null;reader=null;readerHome=null;readerNext=null;
-   document.removeEventListener('keydown',escClose);
- }
- window.showSafetyRegistration=function(){
-   const body=openModal('🛡️ Safety Band','<div id="krFixSafetyMount"></div>');
-   host=$('krSafetyHost')||$('safetyRegistration');
-   if(!host){body.innerHTML='<p>Safety Band panel is not available. Please refresh the page.</p>';return}
-   hostHome=host.parentNode;hostNext=host.nextSibling;
-   $('krFixSafetyMount').appendChild(host);
-   host.style.display='block';host.style.visibility='visible';host.style.width='100%';
-   // Use the established registration/list logic, but render it only once inside this modal.
-   if(typeof oldShowSafety==='function')oldShowSafety();
-   else body.innerHTML='<p>Safety Band module is unavailable. Refresh and try again.</p>';
-   // Remove legacy QR remnants so a registered band cannot appear to have two different QR codes.
-   document.querySelectorAll('#mySafetyQR,#v14QRStatus').forEach(el=>{if(!modal.contains(el)){el.innerHTML='';el.style.display='none'}});
- };
- window.startScanner=function(){
-   const body=openModal('▦ Scan QR Code','<p>Allow camera access to scan a service or Safety Band QR.</p><div id="krFixReaderMount"></div><div id="krFixScanResult" aria-live="polite"></div><button type="button" id="krFixUploadBtn" class="blue" style="margin-top:10px">Scan QR from an image</button><input id="krFixQRFile" type="file" accept="image/*" capture="environment" hidden>');
-   reader=$('reader');
-   if(reader){readerHome=reader.parentNode;readerNext=reader.nextSibling;$('krFixReaderMount').appendChild(reader);reader.style.display='block';}
-   const upload=$('krFixQRFile');$('krFixUploadBtn').onclick=()=>upload.click();
-   upload.onchange=async()=>{const f=upload.files&&upload.files[0];if(!f)return;
-     try{if(typeof Html5Qrcode==='function'){const scannerObj=new Html5Qrcode('krFixReaderMount');const result=await scannerObj.scanFile(f,true);$('krFixScanResult').innerHTML='<div class="result success">QR scanned successfully.</div><p style="overflow-wrap:anywhere">'+String(result).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))+'</p><button id="krFixOpenScanned" class="blue" type="button">Open scanned link</button>';$('krFixOpenScanned').onclick=()=>{try{const u=new URL(result,location.href);if(u.protocol==='https:'||u.protocol==='http:')location.href=u.href;else if(typeof handleQR==='function')handleQR(result);else alert(result)}catch(_){if(typeof handleQR==='function')handleQR(result);else alert(result)}};await scannerObj.clear();}
-     else if('BarcodeDetector' in window){const bmp=await createImageBitmap(f);const det=new BarcodeDetector({formats:['qr_code']});const found=await det.detect(bmp);if(!found.length)throw Error('No QR code found in that image.');$('krFixScanResult').textContent=found[0].rawValue;}
-     else throw Error('Image scanning is not supported by this browser. Use the camera scanner instead.');
-     }catch(err){$('krFixScanResult').textContent=err.message||'Could not scan this image.'}
-   };
-   if(typeof oldStartScanner==='function'){
-     try{oldStartScanner()}catch(e){$('krFixScanResult').textContent='Camera scanner could not start. Check camera permission and HTTPS, then try image scanning.'}
-   }else $('krFixScanResult').textContent='Scanner library is unavailable. Refresh the page and try again.';
- };
- function goTo(target){const el=$(target);if(!el){alert('This section is not available on this page yet.');return false}el.scrollIntoView({behavior:'smooth',block:'center'});el.style.transition='outline-color .2s';el.style.outline='3px solid #2c7be5';setTimeout(()=>el.style.outline='',1800);return true}
- window.krOpenLocalGuide=function(){
-   if(typeof window.showGuideV11==='function'){
-     if(goTo('guideResultV11')){window.showGuideV11();$('guideResultV11')?.scrollIntoView({behavior:'smooth',block:'center'});return}
-     if(goTo('kr-ref-guide')){window.showGuideV11();return}
-   }
-   const card=[...document.querySelectorAll('#publicPage .card,#publicPage .kr-ref-new-card')].find(c=>/Hire a Local Guide/i.test(c.innerText||''));if(card){card.scrollIntoView({behavior:'smooth',block:'center'});const b=card.querySelector('button');if(b)b.click();return}alert('Local Guide section could not be found. Refresh the website and try again.');
- };
- window.krOpenVolunteer=function(){
-   const form=$('volunteerApplicationForm');
-   if(form){form.scrollIntoView({behavior:'smooth',block:'center'});if(typeof window.showVolunteerApplication==='function')window.showVolunteerApplication();return}
-   const card=[...document.querySelectorAll('#publicPage .card,#publicPage .kr-ref-new-card')].find(c=>/Interested in Being a Volunteer|Volunteer/i.test(c.innerText||''));if(card){card.scrollIntoView({behavior:'smooth',block:'center'});const b=card.querySelector('button');if(b)b.click();return}
-   if(typeof window.showVolunteerApplication==='function'){window.showVolunteerApplication();return}alert('Volunteer section could not be found. Refresh the website and try again.');
- };
- // Repair quick-service buttons that previously used optional calls which silently did nothing.
- function repairQuickButtons(){
-   document.querySelectorAll('#krReferenceQuick .kr-qitem').forEach(btn=>{
-     const label=(btn.innerText||'').trim().toLowerCase();
-     if(label.includes('qr scanner'))btn.onclick=()=>window.startScanner();
-     else if(label.includes('safety band'))btn.onclick=()=>window.showSafetyRegistration();
-     else if(label.includes('local guide'))btn.onclick=()=>window.krOpenLocalGuide();
-     else if(label.includes('volunteer'))btn.onclick=()=>window.krOpenVolunteer();
-   });
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',repairQuickButtons);else repairQuickButtons();
- new MutationObserver(()=>repairQuickButtons()).observe(document.body,{subtree:true,childList:true});
 })();
 </script>
 
